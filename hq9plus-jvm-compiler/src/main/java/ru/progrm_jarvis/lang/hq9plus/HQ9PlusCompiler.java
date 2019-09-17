@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiConsumer;
 
 /**
- * Compiler for <b>HQ9+ programming language</b>
+ * Compiler for <b>HQ9+ programming language</b>.
  *
  * @param <I> type of input source providing compilation source (normally, source code)
  * @param <O> type of output target receiving compilation result

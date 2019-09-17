@@ -11,7 +11,7 @@
     <name>HQ9+ JCM-compiler</name>
     <description>Compiler for HQ9+ programming language targeting JVM-runtime</description>
 
-    <artifactId>hq9plus-java-compiler</artifactId>
+    <artifactId>hq9plus-jvm-compiler</artifactId>
 
     <dependencies>
         <dependency>

@@ -3,11 +3,13 @@ package ru.progrm_jarvis.lang.hq9plus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import ru.progrm_jarvis.lang.hq9plus.ast.HQ9PlusAstNode;
+import ru.progrm_jarvis.lang.hq9plus.util.Later;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -23,8 +25,8 @@ import static org.objectweb.asm.Opcodes.*;
  * @param <O> type of output target receiving compilation result
  */
 @ToString
-@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompiler<I, O> {
 
     /**
@@ -64,6 +66,10 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     VOID_STRING_ARRAY_METHOD_TYPE = Type.getMethodType(Type.VOID_TYPE, STRING_ARRAY_TYPE),
     /**
+     * Type of {@link BigInteger}{@code (}{@link BigInteger}{@code )} method
+     */
+    BIG_INTEGER_BIG_INTEGER_METHOD_TYPE = Type.getMethodType(BIG_INTEGER_TYPE, BIG_INTEGER_TYPE),
+    /**
      * Type of {@code void(int)} method
      */
     VOID_INT_METHOD_TYPE = Type.getMethodType(Type.VOID_TYPE, Type.INT_TYPE),
@@ -81,25 +87,13 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     MAIN_METHOD_NAME = "main",
     /**
-     * Name of the {@code h} method
-     */
-    H_METHOD_NAME = "h",
-    /**
-     * Name of the {@code q} method
-     */
-    Q_METHOD_NAME = "q",
-    /**
-     * Name of the {@code 9} method
-     */
-    NINE_METHOD_NAME = "nine",
-    /**
-     * Name of the {@code +} method
-     */
-    PLUS_METHOD_NAME = "plus",
-    /**
      * Name of {@link PrintStream#print(int)} and {@link PrintStream#print(int)} methods
      */
     PRINT_METHOD_NAME = "print",
+    /**
+     * Name of {@link BigInteger#add(BigInteger)} method
+     */
+    ADD_METHOD_NAME = "add",
     /**
      * Name of {@link PrintStream#println()} {@link PrintStream#println(String)} methods
      */
@@ -109,9 +103,9 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     OUT_FIELD_NAME = "out",
     /**
-     * Name of counter field
+     * Name of {@link BigInteger#ONE} constant
      */
-    COUNTER_FIELD_NAME = "counter",
+    ONE_FIELD_NAME = "ONE",
     /**
      * Internal name of {@link Object} class
      */
@@ -124,6 +118,10 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      * Internal name of {@link PrintStream} class
      */
     PRINT_STREAM_INTERNAL_NAME = PRINT_STREAM_TYPE.getInternalName(),
+    /**
+     * Internal name of {@link BigInteger} class
+     */
+    BIG_INTEGER_INTERNAL_NAME = BIG_INTEGER_TYPE.getInternalName(),
     /**
      * Descriptor of {@code long}
      */
@@ -149,6 +147,10 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     STRING_ARRAY_DESCRIPTOR = STRING_ARRAY_TYPE.getDescriptor(),
     /**
+     * Descriptor of {@link BigInteger} class
+     */
+    BIG_INTEGER_DESCRIPTOR = BIG_INTEGER_TYPE.getDescriptor(),
+    /**
      * Descriptor of {@code void}{@code ()} method
      */
     VOID_METHOD_DESCRIPTOR = VOID_METHOD_TYPE.getDescriptor(),
@@ -163,7 +165,11 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     /**
      * Descriptor of {@code void}{@code (}{@link String}{@code [])} method
      */
-    VOID_STRING_ARRAY_METHOD_DESCRIPTOR = VOID_STRING_ARRAY_METHOD_TYPE.getDescriptor();
+    VOID_STRING_ARRAY_METHOD_DESCRIPTOR = VOID_STRING_ARRAY_METHOD_TYPE.getDescriptor(),
+    /**
+     * Descriptor of {@link BigInteger}{@code (}{@link BigInteger}{@code )} method
+     */
+    BIG_INTEGER_BIG_INTEGER_METHOD_DESCRIPTOR = BIG_INTEGER_BIG_INTEGER_METHOD_TYPE.getDescriptor();
 
     /**
      * {@link Object}-array with its only value being {@link org.objectweb.asm.Opcodes#INTEGER}
@@ -173,14 +179,6 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      * {@link Object}-array with its only value being {@link #PRINT_STREAM_INTERNAL_NAME}
      */
     PRINT_STREAM_INTERNAL_NAME_OBJECT_ARRAY = {PRINT_STREAM_INTERNAL_NAME};
-
-    /**
-     * {@code true} if the case of source code should be respected and {@code false} otherwise
-     *
-     * @see HQ9PlusAstNode#match(char, boolean)
-     * @see HQ9PlusAstNode#matchOptionally(char, boolean)
-     */
-    boolean respectCase;
 
     /**
      * Pushes the {@code int} value onto the stack effectively.
@@ -230,12 +228,12 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      * Implements the method printing the given text.
      *
      * @param classWriter class-writer used to implement the method
-     * @param methodName name of the implemented method
+     * @param methodName name of the generated method
      * @param text text which should be printed
      */
     protected static void implementTextOutputMethod(@NonNull final ClassWriter classWriter,
-                                             @NonNull final String methodName,
-                                             @NonNull final String text) {
+                                                    @NonNull final String methodName,
+                                                    @NonNull final String text) {
         val method = classWriter.visitMethod(
                 ACC_PROTECTED | ACC_STATIC | ACC_SYNTHETIC, methodName,
                 VOID_METHOD_DESCRIPTOR, null /* no generics */, null /* no exceptions */
@@ -260,7 +258,7 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      * Implements the method printing <i><b>N</b>-bottles of beer</i> song.
      *
      * @param classWriter class-writer used to implement the method
-     * @param methodName name of the implemented method
+     * @param methodName name of the generated method
      * @param initialBottles initial amount of bottles of beer
      */
     @SuppressWarnings("Duplicates") // those are just similar bytecode instructions generated
@@ -440,32 +438,126 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     }
 
     /**
+     * Implements the counter-incrementing method using the given class-writer.
+     *
+     * @param classWriter class-writer used to implement the method
+     * @param counterFieldOwnerInternalName internal name of the class containing the static field whose value gets incremented
+     * @param incrementMethodName name of the generated method
+     * @param counterFieldName name of the generated counter field
+     * @param allowNumericOverflow flag indicating whether it is fine to generate code causing numeric overflow
+     */
+    protected static void implementIncrementerMethod(@NonNull final ClassWriter classWriter,
+                                                     @NonNull final String counterFieldOwnerInternalName,
+                                                     @NonNull final String incrementMethodName,
+                                                     @NonNull final String counterFieldName,
+                                                     final boolean allowNumericOverflow) {
+        val method = classWriter.visitMethod(
+                ACC_PROTECTED | ACC_STATIC | ACC_SYNTHETIC, incrementMethodName,
+                VOID_METHOD_DESCRIPTOR, null /* no generics */, null /* no exceptions */
+        );
+        method.visitCode();
+
+        if (allowNumericOverflow) {
+            classWriter.visitField(
+                    /* according to spec the field should be invisible */
+                    ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC,
+                    counterFieldName, LONG_DESCRIPTOR, null /* no generics */, 0L /* explicit long type */
+            ).visitEnd();
+
+            // -> counter_least, counter_most
+            method.visitFieldInsn(
+                    GETSTATIC, counterFieldOwnerInternalName, counterFieldName, LONG_DESCRIPTOR
+            );
+            // counter_least, counter_most -> counter_least, counter_most, 1L
+            method.visitInsn(LCONST_1);
+            method.visitInsn(LADD);
+            method.visitFieldInsn(
+                    PUTSTATIC, counterFieldOwnerInternalName, counterFieldName, LONG_DESCRIPTOR
+            );
+
+            method.visitInsn(RETURN);
+            method.visitMaxs(2 * 2 /* = 4, LONGS ARE FAT :( (that's why they are called longs) */, 0);
+            method.visitEnd();
+        } else {
+            classWriter.visitField(
+                    /* according to spec the field should be invisible */
+                    ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC,
+                    counterFieldName, BIG_INTEGER_DESCRIPTOR, null /* no generics */, null /* null by default */
+            ).visitEnd();
+
+            method.visitFieldInsn(GETSTATIC, counterFieldOwnerInternalName, counterFieldName, BIG_INTEGER_DESCRIPTOR);
+
+            val ifEndLabel = new Label();
+            method.visitInsn(DUP); // will be more efficient in all cases instead of the first call
+            method.visitJumpInsn(IFNONNULL, ifEndLabel);
+            // initialize the field with `BigInteger#ONE` ...
+            method.visitInsn(POP); // get rid of current field's value reference
+            method.visitFieldInsn(GETSTATIC, BIG_INTEGER_INTERNAL_NAME, ONE_FIELD_NAME, BIG_INTEGER_DESCRIPTOR);
+            method.visitFieldInsn(PUTSTATIC, counterFieldOwnerInternalName, counterFieldName, BIG_INTEGER_DESCRIPTOR);
+            method.visitInsn(RETURN);
+            method.visitLabel(ifEndLabel);
+            // ... or else increment it
+            method.visitFieldInsn(GETSTATIC, BIG_INTEGER_INTERNAL_NAME, ONE_FIELD_NAME, BIG_INTEGER_DESCRIPTOR);
+            method.visitMethodInsn(
+                    INVOKEVIRTUAL, BIG_INTEGER_INTERNAL_NAME,
+                    ADD_METHOD_NAME, BIG_INTEGER_BIG_INTEGER_METHOD_DESCRIPTOR, false
+            );
+            method.visitFieldInsn(PUTSTATIC, counterFieldOwnerInternalName, counterFieldName, BIG_INTEGER_DESCRIPTOR);
+
+            method.visitFrame(F_SAME, 0, null, 0, null);
+            method.visitInsn(RETURN);
+            method.visitMaxs(2, 0);
+            method.visitEnd();
+        }
+    }
+
+    /**
      * Implements the {@link HQ9PlusAstNode#H H} method using the given class-writer.
      *
      * @param classWriter class-writer used to implement the method
+     * @param options compiler options
+     * @return name of the generated method and its creator
      */
-    protected static void implementHMethod(@NonNull final ClassWriter classWriter) {
-        implementTextOutputMethod(classWriter, H_METHOD_NAME, HQ9PlusConst.HELLO_WORLD_TEXT);
+    protected static Later<String, Void, Void> implementHMethod(@NonNull final ClassWriter classWriter,
+                                                                @NonNull final Options options) {
+        val helloWorldText = options.getHelloWorldText();
+
+        return Later.of(options.getHMethodName(), (methodName, sourceCode) -> {
+            implementTextOutputMethod(classWriter, methodName, helloWorldText);
+            return null;
+        });
     }
 
     /**
      * Implements the {@link HQ9PlusAstNode#Q Q} method using the given class-writer.
      *
      * @param classWriter class-writer used to implement the method
-     * @param sourceCode displayed source-code
+     * @param options compiler options
+     * @return name of the generated method and its creator accepting source-code printed
      */
-    protected static void implementQMethod(@NonNull final ClassWriter classWriter,
-                                    @NonNull final String sourceCode) {
-        implementTextOutputMethod(classWriter, Q_METHOD_NAME, sourceCode);
+    protected static Later<String, String, Void> implementQMethod(@NonNull final ClassWriter classWriter,
+                                                                @NonNull final Options options) {
+        return Later.of(options.getQMethodName(), (methodName, sourceCode) -> {
+            implementTextOutputMethod(classWriter, methodName, sourceCode);
+            return null;
+        });
     }
 
     /**
      * Implements the {@link HQ9PlusAstNode#NINE 9} method using the given class-writer.
      *
      * @param classWriter class-writer used to implement the method
+     * @param options compiler options
+     * @return name of the generated method and its creator
      */
-    protected static void implementNineMethod(@NonNull final ClassWriter classWriter) {
-        implementNBottlesOfBeerMethod(classWriter, NINE_METHOD_NAME, HQ9PlusConst.DEFAULT_BEER_BOTTLE_COUNT);
+    protected static Later<String, Void, Void> implementNineMethod(@NonNull final ClassWriter classWriter,
+                                                                   @NonNull final Options options) {
+        val bottlesOfBeer = options.getBottlesOfBeer();
+
+        return Later.of(options.getNineMethodName(), (methodName, aVoid) -> {
+            implementNBottlesOfBeerMethod(classWriter, methodName, bottlesOfBeer);
+            return null;
+        });
     }
 
     /**
@@ -473,54 +565,38 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      *
      * @param classWriter class-writer used to implement the method
      * @param internalClassName internal name of the class containing the static field whose value gets incremented
+     * @param options compiler options
+     * @return name of the generated method and its creator
      */
-    protected static void implementPlusMethod(@NonNull final ClassWriter classWriter,
-                                       @NonNull final String internalClassName) {
+    protected static Later<String, Void, Void> implementPlusMethod(@NonNull final ClassWriter classWriter,
+                                                                   @NonNull final String internalClassName,
+                                                                   @NonNull final Options options) {
+        val fieldName = options.getCounterFieldName();
+        val allowNumericOverflow = options.isAllowNumericOverflow();
 
-        classWriter.visitField(
-                /* according to spec the field should be invisible */
-                ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC,
-                COUNTER_FIELD_NAME, LONG_DESCRIPTOR, null /* no generics */, 0L
-        );
-
-        val method = classWriter.visitMethod(
-                ACC_PROTECTED | ACC_STATIC | ACC_SYNTHETIC, PLUS_METHOD_NAME,
-                VOID_METHOD_DESCRIPTOR, null /* no generics */, null /* no exceptions */
-        );
-        method.visitCode();
-
-        // -> counter_least, counter_most
-        method.visitFieldInsn(
-                GETSTATIC, internalClassName, COUNTER_FIELD_NAME, LONG_DESCRIPTOR
-        );
-        // counter_least, counter_most -> counter_least, counter_most, 1L
-        method.visitInsn(LCONST_1);
-        method.visitInsn(LADD);
-        method.visitFieldInsn(
-                PUTSTATIC, internalClassName, COUNTER_FIELD_NAME, LONG_DESCRIPTOR
-        );
-
-        method.visitInsn(RETURN);
-        method.visitMaxs(4 /* LONGS ARE FAT :( (that's why they are called longs) */, 0);
-        method.visitEnd();
+        return Later.of(options.getPlusMethodName(), (methodName, aVoid) -> {
+            implementIncrementerMethod(classWriter, internalClassName, methodName, fieldName, allowNumericOverflow);
+            return null;
+        });
     }
 
     /**
      * Generates the class of the given name reading source code using the given reader.
      *
-     * @param className name of the class generated
      * @param reader reader providing the source code
+     * @param options compiler options
      * @return bytecode of the generated class
      * @throws IOException if an exception occurs while reading source code
      */
-    protected byte[] generateClass(@NonNull final String className,
-                                   @NonNull final Reader reader) throws IOException {
-        val internalClassName = className.replace('.', '/');
+    protected byte[] generateClass(@NonNull final Reader reader,
+                                   @NonNull final Options options) throws IOException {
+        val internalClassName = options.getClassName().replace('.', '/');
 
         val clazz = new ClassWriter(0);
         clazz.visit(V1_8, ACC_PUBLIC | ACC_SUPER, internalClassName, null, OBJECT_INTERNAL_NAME, null);
 
-        boolean hasH = false, hasQ = false, hasNine = false, hasPlus = false;
+        @Nullable Later<String, Void, Void> hMethodCreator = null, nineMethodCreator = null, plusMethodCreator = null;
+        @Nullable Later<String, String, Void> qMethodCreator = null;
 
         // reused method local variable
         MethodVisitor method;
@@ -534,6 +610,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
 
             val sourceCode = new StringBuilder();
             int characterCode;
+
+            val respectCase = options.isRespectCase();
             while ((characterCode = reader.read()) != -1) {
                 val character = (char) characterCode;
                 val currentNode = HQ9PlusAstNode.match(character, respectCase);
@@ -541,47 +619,43 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                 sourceCode.append(character);
                 switch (currentNode) {
                     case H: {
-                        if (!hasH) {
-                            hasH = true;
-                            implementHMethod(clazz);
-                        }
+                        if (hMethodCreator == null) hMethodCreator = implementHMethod(clazz, options);
 
                         method.visitMethodInsn(
-                                INVOKESTATIC, internalClassName, H_METHOD_NAME, VOID_METHOD_DESCRIPTOR, false
+                                INVOKESTATIC, internalClassName,
+                                hMethodCreator.getComputedValue(), VOID_METHOD_DESCRIPTOR, false
                         );
 
                         break;
                     }
                     case Q: {
                         // simply mark as using Q as the whole source code should be read before implementing it
-                        if (!hasQ) hasQ = true;
+                        if (qMethodCreator == null) qMethodCreator = implementQMethod(clazz, options);
 
                         method.visitMethodInsn(
-                                INVOKESTATIC, internalClassName, Q_METHOD_NAME, VOID_METHOD_DESCRIPTOR, false
+                                INVOKESTATIC, internalClassName,
+                                qMethodCreator.getComputedValue(), VOID_METHOD_DESCRIPTOR, false
                         );
 
                         break;
                     }
                     case NINE: {
-                        if (!hasNine) {
-                            hasNine = true;
-                            implementNineMethod(clazz);
-                        }
+                        if (nineMethodCreator == null) nineMethodCreator = implementNineMethod(clazz, options);
 
                         method.visitMethodInsn(
-                                INVOKESTATIC, internalClassName, NINE_METHOD_NAME, VOID_METHOD_DESCRIPTOR, false
+                                INVOKESTATIC, internalClassName,
+                                nineMethodCreator.getComputedValue(), VOID_METHOD_DESCRIPTOR, false
                         );
 
                         break;
                     }
                     case PLUS: {
-                        if (!hasPlus) {
-                            hasPlus = true;
-                            implementPlusMethod(clazz, internalClassName);
-                        }
+                        if (plusMethodCreator == null) plusMethodCreator
+                                = implementPlusMethod(clazz, internalClassName, options);
 
                         method.visitMethodInsn(
-                                INVOKESTATIC, internalClassName, PLUS_METHOD_NAME, VOID_METHOD_DESCRIPTOR, false
+                                INVOKESTATIC, internalClassName,
+                                plusMethodCreator.getComputedValue(), VOID_METHOD_DESCRIPTOR, false
                         );
 
                         break;
@@ -589,8 +663,10 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                 }
             }
 
-            // now implement the `Q` method (which required the full source code)
-            implementQMethod(clazz, sourceCode.toString());
+            if (hMethodCreator != null) hMethodCreator.apply(null);
+            if (qMethodCreator != null) qMethodCreator.apply(sourceCode.toString());
+            if (nineMethodCreator != null) nineMethodCreator.apply(null);
+            if (plusMethodCreator != null) plusMethodCreator.apply(null);
 
             method.visitInsn(RETURN);
 
@@ -615,11 +691,12 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
 
         method.visitMaxs(1, 1);
 
+        clazz.visitEnd();
         return clazz.toByteArray();
     }
 
     /**
-     * Writes the bytes to the given output.
+     * Writes the bytes to the given output.t
      *
      * @param bytes bytes to get written to the output
      * @param output output to whom the bytes should be written
@@ -636,8 +713,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     protected abstract Reader toReader(@NotNull I input);
 
     @Override
-    public void compile(@NonNull final String className,
-                        @NonNull final I input, @NotNull final O output) throws IOException {
-        write(generateClass(className, toReader(input)), output);
+    public void compile(@NonNull final I input, @NotNull final O output, @NonNull final Options options)
+            throws IOException {
+        write(generateClass(toReader(input), options), output);
     }
 }

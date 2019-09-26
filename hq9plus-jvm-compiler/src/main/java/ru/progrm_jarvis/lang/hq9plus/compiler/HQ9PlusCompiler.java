@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus;
+package ru.progrm_jarvis.lang.hq9plus.compiler;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -7,6 +7,7 @@ import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.progrm_jarvis.lang.hq9plus.HQ9PlusConst;
 import ru.progrm_jarvis.lang.hq9plus.ast.HQ9PlusAstNode;
 
 import java.io.IOException;

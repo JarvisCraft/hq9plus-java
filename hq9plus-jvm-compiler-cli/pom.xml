@@ -9,6 +9,9 @@
     </parent>
     <artifactId>hq9plus-jvm-compiler-cli</artifactId>
 
+    <name>HQ9+ JVM-compiler CLI</name>
+    <description>Command-line interface for JVM-targeting compiler of HQ9+ programming language</description>
+
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

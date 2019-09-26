@@ -487,8 +487,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
 
             method.visitFieldInsn(GETSTATIC, counterFieldOwnerInternalName, counterFieldName, BIG_INTEGER_DESCRIPTOR);
 
-            val ifEndLabel = new Label();
             method.visitInsn(DUP); // will be more efficient in all cases instead of the first call
+            val ifEndLabel = new Label();
             method.visitJumpInsn(IFNONNULL, ifEndLabel);
             // initialize the field with `BigInteger#ONE` ...
             method.visitInsn(POP); // get rid of current field's value reference

@@ -9,7 +9,7 @@
     </parent>
     <artifactId>hq9plus-jvm-compiler</artifactId>
 
-    <name>HQ9+ JCM-compiler</name>
+    <name>HQ9+ JVM-compiler</name>
     <description>Compiler for HQ9+ programming language targeting JVM-runtime</description>
 
     <dependencies>

@@ -36,7 +36,7 @@ public enum HQ9PlusAstNode {
     /**
      * Token associated with this node
      */
-    @NonNull char token;
+    char token;
     /**
      * Description of this node's semantics
      */

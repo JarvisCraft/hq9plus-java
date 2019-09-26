@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus.compiler;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.compiler;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,8 +8,8 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import ru.progrm_jarvis.lang.hq9plus.ast.HQ9PlusAstNode;
-import ru.progrm_jarvis.lang.hq9plus.util.Later;
+import ru.progrm_jarvis.lang.hq9plus.jvmcompiler.ast.HQ9PlusAstNode;
+import ru.progrm_jarvis.lang.hq9plus.jvmcompiler.util.Later;
 
 import java.io.IOException;
 import java.io.PrintStream;

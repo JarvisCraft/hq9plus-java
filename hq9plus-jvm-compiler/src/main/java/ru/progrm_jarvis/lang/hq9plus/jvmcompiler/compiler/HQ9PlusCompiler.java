@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus.compiler;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.compiler;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -7,8 +7,9 @@ import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.progrm_jarvis.lang.hq9plus.HQ9PlusConst;
-import ru.progrm_jarvis.lang.hq9plus.ast.HQ9PlusAstNode;
+import ru.progrm_jarvis.lang.hq9plus.jvmcompiler.HQ9PlusConst;
+import ru.progrm_jarvis.lang.hq9plus.jvmcompiler.ast.HQ9PlusAstNode;
+import ru.progrm_jarvis.lang.hq9plus.jvmcompiler.ast.HQ9PlusAstParseException;
 
 import java.io.IOException;
 
@@ -28,7 +29,7 @@ public interface HQ9PlusCompiler<I, O> {
      * @param options compiler options
      *
      * @throws IOException if an exception occurs while reading or writing data
-     * @throws ru.progrm_jarvis.lang.hq9plus.ast.HQ9PlusAstParseException if an exception occurs while parsing AST
+     * @throws HQ9PlusAstParseException if an exception occurs while parsing AST
      */
     void compile(@NonNull I input, @NotNull O output, @Nullable Options options) throws IOException;
 

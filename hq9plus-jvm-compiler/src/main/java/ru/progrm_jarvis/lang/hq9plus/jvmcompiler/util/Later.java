@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus.util;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.util;
 
 import lombok.AccessLevel;
 import lombok.Getter;

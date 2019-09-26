@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus.compiler;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.compiler;
 
 import lombok.experimental.UtilityClass;
 import lombok.val;

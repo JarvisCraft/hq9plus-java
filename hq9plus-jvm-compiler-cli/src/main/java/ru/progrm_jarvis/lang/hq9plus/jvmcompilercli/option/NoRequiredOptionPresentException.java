@@ -4,7 +4,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * An exception to be thrown whenever a required {@link org.apache.commons.cli.Option option}
- * is not present in the {@link org.apache.commons.cli.CommandLine command line}.
+ * is not present in the {@link org.apache.commons.cli.CommandLine command-line}.
  */
 @NoArgsConstructor
 public class NoRequiredOptionPresentException extends RuntimeException {

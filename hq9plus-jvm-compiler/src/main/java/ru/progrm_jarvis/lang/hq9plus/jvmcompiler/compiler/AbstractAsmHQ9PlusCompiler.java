@@ -2,6 +2,7 @@ package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.compiler;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
@@ -26,6 +27,7 @@ import static org.objectweb.asm.Opcodes.*;
  */
 @ToString
 @RequiredArgsConstructor
+@Log(topic = "ASM-based HQ9+ compiler")
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompiler<I, O> {
 
@@ -234,6 +236,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     protected static void implementTextOutputMethod(@NonNull final ClassWriter classWriter,
                                                     @NonNull final String methodName,
                                                     @NonNull final String text) {
+        log.fine(() -> "Implementing text-output method `" + methodName + "` for String: \"" + text + '"');
+
         val method = classWriter.visitMethod(
                 ACC_PROTECTED | ACC_STATIC | ACC_SYNTHETIC, methodName,
                 VOID_METHOD_DESCRIPTOR, null /* no generics */, null /* no exceptions */
@@ -265,6 +269,11 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     protected static void implementNBottlesOfBeerMethod(@NonNull final ClassWriter classWriter,
                                                         @NonNull final String methodName,
                                                         final int initialBottles) {
+        log.fine(
+                () -> "Implementing N-bottles-of-beer method `" + methodName
+                        + "` starting from " + initialBottles + " bottles"
+        );
+
         if (initialBottles < 1) throw new IllegalArgumentException(
                 "There is no need to sing about bottles of beer if there isn't enough of those (" + initialBottles + ')'
         );
@@ -439,18 +448,24 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
 
     /**
      * Implements the counter-incrementing method using the given class-writer.
-     *
-     * @param classWriter class-writer used to implement the method
-     * @param counterFieldOwnerInternalName internal name of the class containing the static field whose value gets incremented
+     *  @param classWriter class-writer used to implement the method
      * @param incrementMethodName name of the generated method
+     * @param counterFieldOwnerInternalName internal name of the class
+ * containing the static field whose value gets incremented
      * @param counterFieldName name of the generated counter field
      * @param allowNumericOverflow flag indicating whether it is fine to generate code causing numeric overflow
      */
     protected static void implementIncrementerMethod(@NonNull final ClassWriter classWriter,
-                                                     @NonNull final String counterFieldOwnerInternalName,
                                                      @NonNull final String incrementMethodName,
+                                                     @NonNull final String counterFieldOwnerInternalName,
                                                      @NonNull final String counterFieldName,
                                                      final boolean allowNumericOverflow) {
+        log.fine(
+                () -> "Implementing incrementer method `" + incrementMethodName
+                        + "` with field `" + counterFieldOwnerInternalName + "." + counterFieldName
+                        + "` (numeric overflow: " + (allowNumericOverflow ? "allowed" : "disallowed") + ')'
+        );
+
         val method = classWriter.visitMethod(
                 ACC_PROTECTED | ACC_STATIC | ACC_SYNTHETIC, incrementMethodName,
                 VOID_METHOD_DESCRIPTOR, null /* no generics */, null /* no exceptions */
@@ -520,6 +535,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     protected static Later<String, Void, Void> implementHMethod(@NonNull final ClassWriter classWriter,
                                                                 @NonNull final Options options) {
+        log.fine(() -> "Postponing generation of method `H`");
+
         val helloWorldText = options.getHelloWorldText();
 
         return Later.of(options.getHMethodName(), (methodName, sourceCode) -> {
@@ -537,6 +554,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     protected static Later<String, String, Void> implementQMethod(@NonNull final ClassWriter classWriter,
                                                                 @NonNull final Options options) {
+        log.fine(() -> "Postponing generation of method `Q`");
+
         return Later.of(options.getQMethodName(), (methodName, sourceCode) -> {
             implementTextOutputMethod(classWriter, methodName, sourceCode);
             return null;
@@ -552,6 +571,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     protected static Later<String, Void, Void> implementNineMethod(@NonNull final ClassWriter classWriter,
                                                                    @NonNull final Options options) {
+        log.fine(() -> "Postponing generation of method `9`");
+
         val bottlesOfBeer = options.getBottlesOfBeer();
 
         return Later.of(options.getNineMethodName(), (methodName, aVoid) -> {
@@ -571,11 +592,13 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     protected static Later<String, Void, Void> implementPlusMethod(@NonNull final ClassWriter classWriter,
                                                                    @NonNull final String internalClassName,
                                                                    @NonNull final Options options) {
+        log.fine(() -> "Postponing generation of method `+`");
+
         val fieldName = options.getCounterFieldName();
         val allowNumericOverflow = options.isAllowNumericOverflow();
 
         return Later.of(options.getPlusMethodName(), (methodName, aVoid) -> {
-            implementIncrementerMethod(classWriter, internalClassName, methodName, fieldName, allowNumericOverflow);
+            implementIncrementerMethod(classWriter, methodName, internalClassName, fieldName, allowNumericOverflow);
             return null;
         });
     }
@@ -591,6 +614,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
     protected byte[] generateClass(@NonNull final Reader reader,
                                    @NonNull final Options options) throws IOException {
         val internalClassName = options.getClassName().replace('.', '/');
+
+        log.fine(() -> "Generating a class " + internalClassName);
 
         val clazz = new ClassWriter(0);
         clazz.visit(V1_8, ACC_PUBLIC | ACC_SUPER, internalClassName, null, OBJECT_INTERNAL_NAME, null);
@@ -692,6 +717,9 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
         method.visitMaxs(1, 1);
 
         clazz.visitEnd();
+
+        log.fine("Generation of class has ended");
+
         return clazz.toByteArray();
     }
 

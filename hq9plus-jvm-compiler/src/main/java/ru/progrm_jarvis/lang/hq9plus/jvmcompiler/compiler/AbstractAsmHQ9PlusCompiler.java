@@ -537,7 +537,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                                                                 @NonNull final Options options) {
         log.fine(() -> "Postponing generation of method `H`");
 
-        val helloWorldText = options.getHelloWorldText();
+        // val not used here due to unexpected Lombok issue due to StackOverflowError
+        final String helloWorldText = options.getHelloWorldText();
 
         return Later.of(options.getHMethodName(), (methodName, sourceCode) -> {
             implementTextOutputMethod(classWriter, methodName, helloWorldText);

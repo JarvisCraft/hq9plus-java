@@ -2,7 +2,6 @@ package ru.progrm_jarvis.lang.hq9plus.jvmcompilercli.option;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
@@ -68,17 +67,6 @@ public class CliOptions {
     public <T, R> R getOption(@NonNull final CommandLine commandLine, @NonNull final String optionName,
                               @NonNull final Function<T, R> valueMapper, @NonNull Supplier<R> defaultValueSupplier)
             throws ParseException {
-        System.out.println(
-                "commandLine = " + commandLine + ", optionName = " + optionName + ", valueMapper = " + valueMapper
-                        + ", defaultValueSupplier = " + defaultValueSupplier);
-        System.out.println(commandLine.getArgList());
-        System.out.println(commandLine.hasOption(optionName));
-        System.out.println(commandLine.getParsedOptionValue(optionName));
-        val iter = commandLine.iterator();
-        iter.forEachRemaining(x -> {
-            System.out.println(" Val = " + x.getValue());
-            System.out.println(" Type = " + x.getType());
-        });
         return commandLine.hasOption(optionName)
                 ? valueMapper.apply((T) commandLine.getParsedOptionValue(optionName)) : defaultValueSupplier.get();
     }

@@ -84,12 +84,16 @@ public interface HQ9PlusCompiler<I, O> {
         counterFieldName = "counter";
 
         /**
+         * Flag enabling verbose output while compiling
+         */
+        @Builder.Default boolean verbose = false,
+        /**
          * {@code true} if the case of source code should be respected and {@code false} otherwise
          *
          * @see HQ9PlusAstNode#match(char, boolean) used to resolve AST nodes depending on this flag
          * @see HQ9PlusAstNode#matchOptionally(char, boolean) used to resolve AST nodes depending on this flag
          */
-        @Builder.Default boolean respectCase = true,
+        respectCase = true,
         /**
          * {@code true} if the values should be pre-computed when possible and {@code false} otherwise
          *

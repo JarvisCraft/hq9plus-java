@@ -12,6 +12,26 @@
     <name>HQ9+ JVM-compiler CLI</name>
     <description>Command-line interface for JVM-targeting compiler of HQ9+ programming language</description>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>ru.progrm_jarvis.lang.hq9plus.jvmcompilercli.SimpleHQ9PlusCompilerCli</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

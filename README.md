@@ -32,6 +32,7 @@ While this form is enough for a general compilation, there are multiple options 
 | ------------------------ | ----- | ------------------------------- | ------------------------------------------------------------ |
 | `source-file`            | `in`  | File path                       | Path to source-code compiled                                 |
 | `target-file`            | `out` | File path                       | Path to the file in which the compiled class should be saved |
+| `verbose`                | `v`   | *None*                          | Flag enabling verbose output                                 |
 | `disrespect-case`        | `drc` | *None*                          | Flag disabling case-respect for the source code              |
 | `allow-pre-computation`  | `apc` | *None*                          | Flag allowing possible pre-computations                      |
 | `allow-numeric-overflow` | `ano` | *None*                          | Flag allowing numeric overflow of the counter"               |

@@ -537,11 +537,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                                                                 @NonNull final Options options) {
         log.fine(() -> "Postponing generation of method `H`");
 
-        // val not used here due to unexpected Lombok issue due to StackOverflowError
-        final String helloWorldText = options.getHelloWorldText();
-
         return Later.of(options.getHMethodName(), (methodName, sourceCode) -> {
-            implementTextOutputMethod(classWriter, methodName, helloWorldText);
+            implementTextOutputMethod(classWriter, methodName, options.getHelloWorldText());
             return null;
         });
     }
@@ -574,10 +571,8 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                                                                    @NonNull final Options options) {
         log.fine(() -> "Postponing generation of method `9`");
 
-        val bottlesOfBeer = options.getBottlesOfBeer();
-
         return Later.of(options.getNineMethodName(), (methodName, aVoid) -> {
-            implementNBottlesOfBeerMethod(classWriter, methodName, bottlesOfBeer);
+            implementNBottlesOfBeerMethod(classWriter, methodName, options.getBottlesOfBeer());
             return null;
         });
     }
@@ -595,11 +590,11 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
                                                                    @NonNull final Options options) {
         log.fine(() -> "Postponing generation of method `+`");
 
-        val fieldName = options.getCounterFieldName();
-        val allowNumericOverflow = options.isAllowNumericOverflow();
-
         return Later.of(options.getPlusMethodName(), (methodName, aVoid) -> {
-            implementIncrementerMethod(classWriter, methodName, internalClassName, fieldName, allowNumericOverflow);
+            implementIncrementerMethod(
+                    classWriter, methodName, internalClassName,
+                    options.getCounterFieldName(), options.isAllowNumericOverflow()
+            );
             return null;
         });
     }

@@ -681,6 +681,7 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
 
                         break;
                     }
+                    default: throw new Error("Unknown node type: " + currentNode);
                 }
             }
 

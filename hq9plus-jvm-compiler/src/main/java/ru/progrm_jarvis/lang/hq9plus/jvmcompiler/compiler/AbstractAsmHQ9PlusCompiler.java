@@ -609,7 +609,7 @@ public abstract class AbstractAsmHQ9PlusCompiler<I, O> implements HQ9PlusCompile
      */
     protected byte[] generateClass(@NonNull final Reader reader,
                                    @NonNull final Options options) throws IOException {
-        val internalClassName = options.getClassName().replace('.', '/');
+        final String internalClassName = options.getClassName().replace('.', '/');
 
         log.fine(() -> "Generating a class " + internalClassName);
 

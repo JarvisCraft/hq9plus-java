@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.compiler;
 
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -16,11 +16,10 @@ public class AsmHQ9PlusCompilers {
      * Creates a new {@link HQ9PlusCompiler} based on {@link AbstractAsmHQ9PlusCompiler} using
      * {@link InputStream} and {@link OutputStream} as its input and output respectively.
      *
-     * @param respectCase flag marking whether case of source code should be respected
      * @return specific compiler
      */
-    public HQ9PlusCompiler<InputStream, OutputStream> streamBased(final boolean respectCase) {
-        return new AbstractAsmHQ9PlusCompiler<InputStream, OutputStream>(respectCase) {
+    public HQ9PlusCompiler<InputStream, OutputStream> streamBased() {
+        return new AbstractAsmHQ9PlusCompiler<InputStream, OutputStream>() {
             @Override
             protected void write(@NotNull final byte[] bytes,
                                  @NotNull final OutputStream output) throws IOException {
@@ -40,11 +39,10 @@ public class AsmHQ9PlusCompilers {
      * Creates a new {@link HQ9PlusCompiler} based on {@link AbstractAsmHQ9PlusCompiler} using
      * {@link BufferedInputStream} and {@link BufferedOutputStream} as its input and output respectively.
      *
-     * @param respectCase flag marking whether case of source code should be respected
      * @return specific compiler
      */
-    public HQ9PlusCompiler<BufferedInputStream, BufferedOutputStream> bufferedStreamBased(final boolean respectCase) {
-        return new AbstractAsmHQ9PlusCompiler<BufferedInputStream, BufferedOutputStream>(respectCase) {
+    public HQ9PlusCompiler<BufferedInputStream, BufferedOutputStream> bufferedStreamBased() {
+        return new AbstractAsmHQ9PlusCompiler<BufferedInputStream, BufferedOutputStream>() {
             @Override
             protected void write(@NotNull final byte[] bytes,
                                  @NotNull final BufferedOutputStream output) throws IOException {

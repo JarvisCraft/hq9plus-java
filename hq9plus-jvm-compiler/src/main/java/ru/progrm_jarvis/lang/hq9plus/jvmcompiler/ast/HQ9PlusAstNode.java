@@ -1,4 +1,4 @@
-package ru.progrm_jarvis.lang.hq9plus.ast;
+package ru.progrm_jarvis.lang.hq9plus.jvmcompiler.ast;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,7 +36,7 @@ public enum HQ9PlusAstNode {
     /**
      * Token associated with this node
      */
-    @NonNull char token;
+    char token;
     /**
      * Description of this node's semantics
      */

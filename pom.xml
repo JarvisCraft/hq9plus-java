@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <version.junit>5.5.2</version.junit>
+        <version.junit>5.6.2</version.junit>
     </properties>
 
     <name>HQ9+ for JVM</name>
@@ -101,7 +101,7 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>7.2-beta</version>
+                <version>9.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
@@ -125,7 +125,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.12</version>
+                <version>1.18.16</version>
                 <scope>provided</scope>
                 <optional>true</optional>
             </dependency>
